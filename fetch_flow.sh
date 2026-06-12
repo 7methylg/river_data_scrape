@@ -5,12 +5,12 @@
 # The IV service caps responses to roughly 120 days per request, so the range
 # is split automatically into ~120-day chunks. Output is a single clean CSV.
 #
-# Usage: ./fetch_flow.sh --start YYYY-MM-DD --end YYYY-MM-DD
-#   e.g. ./fetch_flow.sh --start 2023-01-01 --end 2024-01-01
+# Usage: ./fetch_flow.sh --start YYYY-MM-DD --end YYYY-MM-DD [--site SITE_NO]
+#   e.g. ./fetch_flow.sh --start 2023-01-01 --end 2024-01-01 --site 04250200
 
 set -euo pipefail
 
-SITE="04250200"
+SITE="04250200"   # default site; override with --site
 PARAM="00060"
 CHUNK_DAYS=120
 
@@ -18,7 +18,7 @@ START=""
 END=""
 
 usage() {
-  echo "Usage: $0 --start YYYY-MM-DD --end YYYY-MM-DD" >&2
+  echo "Usage: $0 --start YYYY-MM-DD --end YYYY-MM-DD [--site SITE_NO]" >&2
   exit 1
 }
 
@@ -26,12 +26,14 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --start) START="${2:-}"; shift 2 ;;
     --end)   END="${2:-}";   shift 2 ;;
+    --site)  SITE="${2:-}";  shift 2 ;;
     -h|--help) usage ;;
     *) echo "Unknown argument: $1" >&2; usage ;;
   esac
 done
 
 [[ -n "$START" && -n "$END" ]] || usage
+[[ -n "$SITE" ]] || { echo "Error: --site must not be empty." >&2; exit 1; }
 
 # Validate dates and normalize to YYYY-MM-DD (also rejects bad calendar dates).
 START="$(date -d "$START" +%Y-%m-%d 2>/dev/null)" || { echo "Invalid --start date" >&2; exit 1; }
